@@ -1,0 +1,83 @@
+/* src/components/AdminPanel.css */
+.admin-panel {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .panel-title {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #333;
+    font-size: 28px;
+  }
+  
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Fixed 3-column layout */
+    grid-template-rows: auto auto; /* Two rows with automatic height */
+    margin-bottom: 60px; /* Add space at the bottom of the container */
+    gap: 70px 30px; /* 60px de espacio vertical, 30px de espacio horizontal */
+
+  }
+  
+  /* Media query for responsive layout */
+  @media (max-width: 992px) {
+    .cards-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .cards-container {
+      grid-template-columns: 1fr;
+    }
+  }
+  .env-selector {
+    margin-top: 15px;
+    text-align: center;
+  }
+  
+  .env-selector label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+  }
+  
+  .env-selector select {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    width: 100%;
+    max-width: 150px;
+  }
+  
+  .env-selector select:hover {
+    border-color: #666;
+  }
+  
+  .env-display {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #555;
+  }
+  
+  .env-url {
+    font-size: 12px;
+    margin-top: 5px;
+    word-break: break-all;
+  }
+  
+  .env-url a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .env-url a:hover {
+    text-decoration: underline;
+  }
