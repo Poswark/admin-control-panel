@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './AdminPanel.css';
 import Card from './Card';
+import config from '../config.json';  // Importa el JSON
 
-// Import images
 import jenkinsLogo from '../assets/jenkins.png';
 import dynatraceLogo from '../assets/dynatrace.png';
 import awsLogo from '../assets/aws.png';
@@ -17,10 +17,11 @@ function AdminPanel() {
     uat: "https://jenkins.uat.yourdomain.com",
     prd: "https://jenkins.prd.yourdomain.com"
   };
+
   const Dynatrace = {
     dev: "https://jenkins.dev.yourdomain.com",
     uat: "https://jenkins.dev.yourdomain.com",
-    prd: "https://jenkins.prd.yourdomain.com"
+    prd: "https://jenkins.dev.yourdomain.com"
   };
 
   const services = [
@@ -57,17 +58,23 @@ function AdminPanel() {
   return (
     <div className="admin-panel">
       <h1 className="panel-title">Panel de Control para Administración</h1>
-      
-      {/* Selector de ambiente */}
-      <div className="env-selector">
-        <label htmlFor="environment">Selecciona el ambiente: </label>
-        <select id="environment" value={env} onChange={(e) => setEnv(e.target.value)}>
-          <option value="dev">Desarrollo</option>
-          <option value="uat">Pruebas (UAT)</option>
-          <option value="prd">Producción</option>
-        </select>
-      </div>
-      
+
+    {/* Muestra la alerta si showAlert es true en el config.json */}
+    {config.showAlert && (
+      <p className="alert-message">
+        {config.alertMessage}
+      </p>
+    )}
+
+    <div className="env-selector">
+      <label htmlFor="environment">Selecciona el ambiente: </label>
+      <select id="environment" value={env} onChange={(e) => setEnv(e.target.value)}>
+        <option value="dev">Desarrollo</option>
+        <option value="uat">Pruebas (UAT)</option>
+        <option value="prd">Producción</option>
+      </select>
+    </div>
+
       <div className="cards-container">
         {services.map((service) => (
           <Card 

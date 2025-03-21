@@ -81,3 +81,34 @@
   .env-url a:hover {
     text-decoration: underline;
   }
+  .admin-panel {
+    text-align: center; /* Centra todo el contenido */
+  }
+  
+  .alert-message {
+    color: red;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 10px 0;
+    text-align: center; /* Asegura que esté centrado */
+  }
+  
+  .env-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px 0;
+  }
+  
+  .env-selector label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  #environment {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
