@@ -1,10 +1,9 @@
-version: '3.8'
-
 services:
-  admin-panel:
+  admin-control-panel:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: admin-control-panel
     ports:
-      - "3000:80"
+      - "8080:8080"
     restart: unless-stopped
