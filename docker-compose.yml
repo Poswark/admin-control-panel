@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - REACT_APP_MESSAGE=None
     container_name: admin-control-panel
     ports:
       - "8080:8080"

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './AdminPanel.css';
 import Card from './Card';
-import config from '../config.json';  // Importa el JSON
 
 import jenkinsLogo from '../assets/jenkins.png';
 import dynatraceLogo from '../assets/dynatrace.png';
@@ -10,6 +9,7 @@ import gitLogo from '../assets/git.png';
 
 function AdminPanel() {
   const [env, setEnv] = useState('dev');
+  const message = window._env_?.REACT_APP_MESSAGE || '';
 
   // URLs por ambiente para la carta 1 (CI/CD Pipeline)
   const envUrls = {
@@ -59,12 +59,12 @@ function AdminPanel() {
     <div className="admin-panel">
       <h1 className="panel-title">Panel de Control para Administración</h1>
 
-    {/* Muestra la alerta si showAlert es true en el config.json */}
-    {config.showAlert && (
-      <p className="alert-message">
-        {config.alertMessage}
-      </p>
-    )}
+      {/* Muestra el mensaje de alerta solo si showAlert está activo y message tiene contenido */}
+      {message && (
+        <p className="alert-message">
+          {message}
+        </p>
+      )}
 
     <div className="env-selector">
       <label htmlFor="environment">Selecciona el ambiente: </label>
