@@ -1,114 +1,163 @@
 /* src/components/AdminPanel.css */
+
+/* Layout principal */
 .admin-panel {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+}
+
+/* Header con título y botón de documentación */
+.panel-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.panel-title {
+  color: #333;
+  font-size: 28px;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.docs-icon-button {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+  min-width: 36px;
+  height: 36px;
+  position: absolute;
+  right: 0;
+}
+
+.docs-icon-button:hover {
+  background: #e9ecef;
+  color: #495057;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.docs-icon-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Mensaje de alerta */
+.alert-message {
+  color: red;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* Selector de ambiente */
+.env-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.env-selector label {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#environment {
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  width: 100%;
+  max-width: 150px;
+}
+
+#environment:hover {
+  border-color: #666;
+}
+
+/* Contenedor de tarjetas */
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  margin-bottom: 60px;
+  gap: 70px 30px;
+}
+
+/* Información del ambiente (si se usa) */
+.env-display {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #555;
+}
+
+.env-url {
+  font-size: 12px;
+  margin-top: 5px;
+  word-break: break-all;
+}
+
+.env-url a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.env-url a:hover {
+  text-decoration: underline;
+}
+
+/* Media queries para responsive design */
+@media (max-width: 992px) {
+  .cards-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cards-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .panel-header {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
   }
   
   .panel-title {
-    text-align: center;
-    margin-bottom: 40px;
-    color: #333;
-    font-size: 28px;
+    margin-bottom: 10px;
   }
   
-  .cards-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Fixed 3-column layout */
-    grid-template-rows: auto auto; /* Two rows with automatic height */
-    margin-bottom: 60px; /* Add space at the bottom of the container */
-    gap: 70px 30px; /* 60px de espacio vertical, 30px de espacio horizontal */
-
-  }
-  
-  /* Media query for responsive layout */
-  @media (max-width: 992px) {
-    .cards-container {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .cards-container {
-      grid-template-columns: 1fr;
-    }
-  }
-  .env-selector {
-    margin-top: 15px;
-    text-align: center;
+  .docs-icon-button {
+    position: absolute;
+    top: 0;
+    right: 0;
   }
   
   .env-selector label {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-  }
-  
-  .env-selector select {
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    width: 100%;
-    max-width: 150px;
-  }
-  
-  .env-selector select:hover {
-    border-color: #666;
-  }
-  
-  .env-display {
-    font-size: 14px;
-    margin-top: 10px;
-    color: #555;
-  }
-  
-  .env-url {
-    font-size: 12px;
-    margin-top: 5px;
-    word-break: break-all;
-  }
-  
-  .env-url a {
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .env-url a:hover {
-    text-decoration: underline;
-  }
-  .admin-panel {
-    text-align: center; /* Centra todo el contenido */
-  }
-  
-  .alert-message {
-    color: red;
-    font-weight: bold;
     font-size: 16px;
-    margin: 10px 0;
-    text-align: center; /* Asegura que esté centrado */
-  }
-  
-  .env-selector {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 15px 0;
-  }
-  
-  .env-selector label {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 5px;
   }
   
   #environment {
-    padding: 8px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    font-size: 14px;
   }
+}

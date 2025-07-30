@@ -55,3 +55,71 @@
     flex-wrap: wrap; /* Para que las tarjetas bajen de línea */
     gap: 60px; /* Espacio entre las filas de tarjetas */
 }
+/* Agregar estos estilos a tu Card.css existente */
+
+.card {
+  position: relative; /* Importante para el posicionamiento del icono */
+  /* ... tus estilos existentes de .card ... */
+}
+
+.card-header {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+.card-docs-icon {
+  background: rgba(248, 249, 250, 0.9);
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+  min-width: 28px;
+  height: 28px;
+  backdrop-filter: blur(4px);
+}
+
+.card-docs-icon:hover {
+  background: rgba(233, 236, 239, 0.95);
+  color: #495057;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.card-docs-icon:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  /* Asegura que el contenido no se superponga con el icono */
+  padding-top: 15px;
+  /* ... mantén tus estilos existentes ... */
+}
+
+/* Efecto hover mejorado para la tarjeta */
+.card:hover .card-docs-icon {
+  background: rgba(233, 236, 239, 0.95);
+  border-color: #adb5bd;
+}
+
+/* Para pantallas pequeñas */
+@media (max-width: 768px) {
+  .card-header {
+    top: 8px;
+    right: 8px;
+  }
+  
+  .card-docs-icon {
+    min-width: 24px;
+    height: 24px;
+    padding: 4px;
+  }
+}
