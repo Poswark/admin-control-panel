@@ -1,3 +1,3 @@
 window._env_ = {
-    REACT_APP_MESSAGE: ""
+    REACT_APP_MESSAGE: "HOLA ESTO ES EL MENSAJE DE PRUEBA",
   };
