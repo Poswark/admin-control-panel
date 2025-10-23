@@ -59,11 +59,11 @@ function AdminPanel() {
     },
     {
       id: 4,
-      title: "DevOps Tools",
+      title: "DevOps inventario",
       description: "Access Git repositories and related tools",
       logoUrl: gitLogo,
-      redirectUrl: "https://github.com/your-organization",
-      docUrl: "https://docs.yourdomain.com/git"
+      redirectUrl: "http://localhost:31180/api/inventario",
+      docUrl: "http://localhost:31180/api/inventario"
     }
   ];
 

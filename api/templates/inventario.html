@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        .btn-download {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #48bb78;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            padding: 20px 30px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 2em;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+            font-size: 0.9em;
+        }
+        tr {
+            transition: all 0.2s;
+        }
+        tbody tr:hover {
+            background: #f8f9ff;
+            transform: scale(1.001);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .badge-spring-boot {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-python{
+            background: #A6CEFF;
+            color: #194478;
+        }
+        .badge-nodejs{
+            background: #FFC4CA;
+            color: #9C1929;
+        }
+        .badge-react {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .badge-default {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .server-info {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            margin: 30px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
+        }
+        .repo-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .repo-link:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .stats {
+                flex-direction: column;
+            }
+            .controls {
+                flex-direction: column;
+            }
+            .download-buttons {
+                width: 100%;
+                justify-content: stretch;
+            }
+            .btn-download {
+                flex: 1;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            table {
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 Sistema de Inventario</h1>
+            <p>Gestión y visualización de documentos y artefactos</p>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, artefacto, tecnología o dueño...">
+            </div>
+            <div class="download-buttons">
+                <a href="/api/descargar/csv" class="btn-download btn-csv" download>
+                    📊 Descargar CSV
+                </a>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="totalFiles">0</h3>
+                <p>Total de Documentos</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalTech">0</h3>
+                <p>Tecnologías</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalOwners">0</h3>
+                <p>Propietarios</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Cargando inventario...</p>
+            </div>
+            <div id="tableContent" style="display: none;">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Nombre ↕</th>
+                            <th onclick="sortTable(1)">Artefacto ↕</th>
+                            <th onclick="sortTable(2)">Repositorio ↕</th>
+                            <th onclick="sortTable(3)">Tecnología ↕</th>
+                            <th onclick="sortTable(4)">Tipo ↕</th>
+                            <th onclick="sortTable(5)">Servidor ↕</th>
+                            <th onclick="sortTable(6)">Dueño ↕</th>
+                            <th onclick="sortTable(7)">Comentario ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+                <div class="no-results" id="noResults" style="display: none;">
+                    No se encontraron resultados
+                </div>
+            </div>
+            <div class="error" id="errorMsg" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let inventoryData = [];
+        let sortDirection = {};
+
+        async function loadInventory() {
+            try {
+                const response = await fetch('/api/inventario');
+                if (!response.ok) throw new Error('Error al cargar el inventario');
+                
+                inventoryData = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tableContent').style.display = 'block';
+                
+                updateStats();
+                renderTable(inventoryData);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('errorMsg').textContent = '❌ ' + error.message;
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }
+
+        function updateStats() {
+            const totalFiles = inventoryData.length;
+            const technologies = new Set(inventoryData.map(item => item.technology)).size;
+            const owners = new Set(inventoryData.map(item => item.dueño)).size;
+
+            document.getElementById('totalFiles').textContent = totalFiles;
+            document.getElementById('totalTech').textContent = technologies;
+            document.getElementById('totalOwners').textContent = owners;
+        }
+
+        function getTechBadgeClass(tech) {
+            if (tech && tech.toLowerCase().includes('spring')) {
+                return 'badge-spring-boot';
+            } else if (tech && tech.toLowerCase().includes('react')) {
+                return 'badge-react';
+            }
+            else if (tech && tech.toLowerCase().includes('python')) {
+                return 'badge-python';
+            }
+            else if (tech && tech.toLowerCase().includes('node')) {
+                return 'badge-nodejs';
+            }
+            return 'badge-default';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+                document.querySelector('table').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('noResults').style.display = 'none';
+            document.querySelector('table').style.display = 'table';
+
+            data.forEach(item => {
+                const serverInfo = item.server ? 
+                    `${item.server.protocol}://${item.server.host}:${item.server.port}` : 
+                    'N/A';
+                
+                const repoDisplay = item.repositorio ? 
+                    `<a href="#" class="repo-link" title="${item.repositorio}">${item.repositorio.substring(0, 40)}...</a>` :
+                    'N/A';
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><strong>${item.nombre || 'N/A'}</strong></td>
+                    <td>${item.artefacto || 'N/A'}</td>
+                    <td>${repoDisplay}</td>
+                    <td><span class="badge ${getTechBadgeClass(item.technology)}">${item.technology || 'N/A'}</span></td>
+                    <td>${item.TIPO || 'N/A'}</td>
+                    <td><span class="server-info">${serverInfo}</span></td>
+                    <td>${item.dueño || 'N/A'}</td>
+                    <td>${item.comentario || 'N/A'}</td>
+                `;
+            });
+        }
+
+        function sortTable(columnIndex) {
+            const keys = ['nombre', 'artefacto', 'repositorio', 'technology', 'TIPO', 'server', 'dueño', 'comentario'];
+            const key = keys[columnIndex];
+            
+            sortDirection[key] = !sortDirection[key];
+
+            inventoryData.sort((a, b) => {
+                let aVal = a[key];
+                let bVal = b[key];
+
+                if (key === 'server') {
+                    aVal = a.server ? `${a.server.host}:${a.server.port}` : '';
+                    bVal = b.server ? `${b.server.host}:${b.server.port}` : '';
+                }
+
+                if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+                if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+                if (aVal < bVal) return sortDirection[key] ? -1 : 1;
+                if (aVal > bVal) return sortDirection[key] ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(inventoryData);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = inventoryData.filter(item => 
+                (item.nombre || '').toLowerCase().includes(searchTerm) ||
+                (item.artefacto || '').toLowerCase().includes(searchTerm) ||
+                (item.technology || '').toLowerCase().includes(searchTerm) ||
+                (item.dueño || '').toLowerCase().includes(searchTerm) ||
+                (item.TIPO || '').toLowerCase().includes(searchTerm) ||
+                (item.comentario || '').toLowerCase().includes(searchTerm)
+            );
+            renderTable(filtered);
+        });
+
+        loadInventory();
+    </script>
+</body>
+</html>
