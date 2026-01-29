@@ -7,9 +7,56 @@ import oneagent
 import oneagent.sdk as onesdk  # import correcto del SDK Dynatrace
 import logging
 
+import requests
+import re
+from flask_cors import CORS
+
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+CORS(app)  # Habilitar CORS para que el frontend pueda llamar a la API si es necesario
+
+# --- Configuración Uptime Kuma ---
+UPTIME_KUMA_URL = os.getenv("UPTIME_KUMA_URL")
+UPTIME_KUMA_KEY = os.getenv("UPTIME_KUMA_KEY")
+
+@app.route("/api/healthcheck")
+def api_healthcheck():
+    if not UPTIME_KUMA_KEY:
+        return jsonify({"error": "No se encontró el API key de Uptime Kuma (variable 'control')"}), 500
+
+    try:
+        # Petición a Uptime Kuma con Basic Auth (usuario vacío, password es el API key)
+        response = requests.get(UPTIME_KUMA_URL, auth=('', UPTIME_KUMA_KEY), timeout=5)
+        response.raise_for_status()
+        
+        metrics = response.text
+        # Buscar líneas como: monitor_status{monitor_id="1",monitor_name="altoariari",monitor_type="http",monitor_url="https://altoariari.com/",...} 1
+        # Usamos regex para extraer monitor_name, monitor_url y el valor final
+        pattern = r'monitor_status\{[^}]*monitor_name="([^"]+)"[^}]*monitor_url="([^"]+)"[^}]*\}\s+(\d+\.?\d*)'
+        matches = re.findall(pattern, metrics)
+        
+        healthchecks = []
+        for name, url, status_val in matches[:5]: # Solo los primeros 5 como pidió el usuario
+            # Status en Prometheus: 1 = UP, 0 = DOWN, 2 = PENDING, 3 = MAINTENANCE
+            status = 'ok'
+            if status_val == '0':
+                status = 'error'
+            elif status_val in ['2', '3']:
+                status = 'warning'
+                
+            healthchecks.append({
+                "name": name,
+                "url": url,
+                "status": status
+            })
+            
+        return jsonify(healthchecks)
+
+    except Exception as e:
+        logging.error(f"Error fetching Uptime Kuma metrics: {e}")
+        print(f"Error fetching Uptime Kuma metrics: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # --- Inicializar Dynatrace SDK ---
 try:

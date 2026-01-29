@@ -3,13 +3,13 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Instalar dependencias
-COPY requirements.txt .
+COPY api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar aplicación
-COPY app.py .
-COPY archivo.json .
-COPY templates ./templates
+COPY api/app.py .
+COPY api/archivo.json .
+COPY api/templates ./templates
 
 # Crear usuario no-root
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, MessageCircle, Activity } from 'lucide-react';
 
 import ariesLogo from '../assets/aries.png';
@@ -39,6 +39,18 @@ function AdminPanel() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [healthcheckTools, setHealthcheckTools] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/healthcheck')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setHealthcheckTools(data);
+        }
+      })
+      .catch(err => console.error("Error fetching healthchecks:", err));
+  }, []);
   
   const message = window._env_?.REACT_APP_MESSAGE || '';
   const documentationUrl = "https://altoariari.com";
@@ -90,11 +102,6 @@ function AdminPanel() {
     }
   ];
 
-  const healthcheckTools = [
-    { name: 'Splunk', url: 'https://splunk.yourdomain.com/healthcheck', status: 'ok' },
-    { name: 'Artifactory', url: 'https://artifactory.yourdomain.com/healthcheck', status: 'warning' },
-    { name: 'ArgoCD', url: 'https://argocd.yourdomain.com/healthcheck', status: 'error' }
-  ];
 
   const getStatusColor = (status) => {
     switch(status) {
