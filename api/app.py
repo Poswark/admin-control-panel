@@ -16,47 +16,7 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para que el frontend pueda llamar a la API si es necesario
 
-# --- Configuración Uptime Kuma ---
-UPTIME_KUMA_URL = os.getenv("UPTIME_KUMA_URL")
-UPTIME_KUMA_KEY = os.getenv("UPTIME_KUMA_KEY")
 
-@app.route("/api/healthcheck")
-def api_healthcheck():
-    if not UPTIME_KUMA_KEY:
-        return jsonify({"error": "No se encontró el API key de Uptime Kuma (variable 'control')"}), 500
-
-    try:
-        # Petición a Uptime Kuma con Basic Auth (usuario vacío, password es el API key)
-        response = requests.get(UPTIME_KUMA_URL, auth=('', UPTIME_KUMA_KEY), timeout=5)
-        response.raise_for_status()
-        
-        metrics = response.text
-        # Buscar líneas como: monitor_status{monitor_id="1",monitor_name="altoariari",monitor_type="http",monitor_url="https://altoariari.com/",...} 1
-        # Usamos regex para extraer monitor_name, monitor_url y el valor final
-        pattern = r'monitor_status\{[^}]*monitor_name="([^"]+)"[^}]*monitor_url="([^"]+)"[^}]*\}\s+(\d+\.?\d*)'
-        matches = re.findall(pattern, metrics)
-        
-        healthchecks = []
-        for name, url, status_val in matches[:5]: # Solo los primeros 5 como pidió el usuario
-            # Status en Prometheus: 1 = UP, 0 = DOWN, 2 = PENDING, 3 = MAINTENANCE
-            status = 'ok'
-            if status_val == '0':
-                status = 'error'
-            elif status_val in ['2', '3']:
-                status = 'warning'
-                
-            healthchecks.append({
-                "name": name,
-                "url": url,
-                "status": status
-            })
-            
-        return jsonify(healthchecks)
-
-    except Exception as e:
-        logging.error(f"Error fetching Uptime Kuma metrics: {e}")
-        print(f"Error fetching Uptime Kuma metrics: {e}")
-        return jsonify({"error": str(e)}), 500
 
 # --- Inicializar Dynatrace SDK ---
 try:
@@ -84,6 +44,9 @@ def api_inventario():
         # --- Traza personalizada Dynatrace ---
         if sdk:
             tracer = sdk.trace_custom_service('api_inventario', 'FlaskService')
+            tracer.add_custom_attribute("endpoint", "/api/inventario")
+            tracer.add_custom_attribute("method", "GET")
+            tracer.add_custom_attribute("status_code", 200)
             with tracer:
                 print("📡 [Dynatrace] Llamada a /api/inventario trazada")
 
@@ -150,6 +113,123 @@ def descargar_csv():
             
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+# --- Configuración Uptime Kuma ---
+UPTIME_KUMA_URL = os.getenv("UPTIME_KUMA_URL")
+UPTIME_KUMA_KEY = os.getenv("UPTIME_KUMA_KEY")
+
+@app.route("/healthcheck")
+def api_healthcheck():
+    logging.info("=== /healthcheck called ===")
+    logging.info(f"UPTIME_KUMA_URL: {UPTIME_KUMA_URL}")
+    logging.info(f"UPTIME_KUMA_KEY presente: {bool(UPTIME_KUMA_KEY)}")
+    logging.info(f"UPTIME_KUMA_KEY valor: [{UPTIME_KUMA_KEY}]")  # corchetes para ver espacios/chars raros
+
+    if not UPTIME_KUMA_KEY:
+        return jsonify({"error": "No se encontró el API key de Uptime Kuma (variable 'control')"}), 500
+
+    try:
+        logging.info(f"Haciendo request a: {UPTIME_KUMA_URL}")
+        logging.info(f"Auth: user='' password=[{UPTIME_KUMA_KEY}]")
+        
+        response = requests.get(UPTIME_KUMA_URL, auth=('', UPTIME_KUMA_KEY), timeout=5)
+        
+        logging.info(f"Status code: {response.status_code}")
+        logging.info(f"Response headers: {dict(response.headers)}")
+        logging.info(f"Response body (primeros 500 chars): {response.text[:500]}")
+        
+        response.raise_for_status()
+        
+        metrics = response.text
+        pattern = r'monitor_status\{[^}]*monitor_name="([^"]+)"[^}]*monitor_url="([^"]+)"[^}]*\}\s+(\d+\.?\d*)'
+        matches = re.findall(pattern, metrics)
+        
+        logging.info(f"Matches encontrados: {len(matches)}")
+        logging.info(f"Matches: {matches}")
+        
+        healthchecks = []
+        for name, url, status_val in matches[:5]:
+            status = 'ok'
+            if status_val == '0':
+                status = 'error'
+            elif status_val in ['2', '3']:
+                status = 'warning'
+                
+            healthchecks.append({
+                "name": name,
+                "url": url,
+                "status": status
+            })
+        
+        logging.info(f"Healthchecks resultado: {healthchecks}")
+        return jsonify(healthchecks)
+
+    except requests.exceptions.ConnectionError as e:
+        logging.error(f"Error de conexión (no se pudo conectar a {UPTIME_KUMA_URL}): {e}")
+        return jsonify({"error": f"ConnectionError: {str(e)}"}), 500
+    
+    except requests.exceptions.Timeout as e:
+        logging.error(f"Timeout conectando a {UPTIME_KUMA_URL}: {e}")
+        return jsonify({"error": f"Timeout: {str(e)}"}), 500
+    
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"HTTP Error {response.status_code}: {e}")
+        logging.error(f"Response body: {response.text}")
+        return jsonify({"error": f"HTTPError {response.status_code}: {str(e)}", "body": response.text}), 500
+
+    except Exception as e:
+        logging.error(f"Error inesperado: {type(e).__name__}: {e}")
+        return jsonify({"error": f"{type(e).__name__}: {str(e)}"}), 500
+    
+    
+    """
+import requests
+import re
+import os
+
+UPTIME_KUMA_URL = os.getenv("UPTIME_KUMA_URL", "http://192.168.1.2:3001/metrics")
+UPTIME_KUMA_KEY = os.getenv("UPTIME_KUMA_KEY", "-si_ax8o")
+
+print("=== DEBUG UPTIME KUMA ===")
+print(f"URL: {UPTIME_KUMA_URL}")
+print(f"KEY: [{UPTIME_KUMA_KEY}]")
+print()
+
+try:
+    print(f"Haciendo request...")
+    response = requests.get(UPTIME_KUMA_URL, auth=('', UPTIME_KUMA_KEY), timeout=5)
+    
+    print(f"Status code: {response.status_code}")
+    print(f"Headers: {dict(response.headers)}")
+    print(f"Body (primeros 500 chars):\n{response.text[:500]}")
+    print()
+
+    response.raise_for_status()
+
+    metrics = response.text
+    pattern = r'monitor_status\{[^}]*monitor_name="([^"]+)"[^}]*monitor_url="([^"]+)"[^}]*\}\s+(\d+\.?\d*)'
+    matches = re.findall(pattern, metrics)
+
+    print(f"Matches encontrados: {len(matches)}")
+    for name, url, status_val in matches:
+        status = 'ok'
+        if status_val == '0':
+            status = 'error'
+        elif status_val in ['2', '3']:
+            status = 'warning'
+        print(f"  - {name} | {url} | {status}")
+
+except requests.exceptions.ConnectionError as e:
+    print(f"ERROR de conexión: {e}")
+except requests.exceptions.Timeout:
+    print(f"ERROR: Timeout conectando a {UPTIME_KUMA_URL}")
+except requests.exceptions.HTTPError as e:
+    print(f"ERROR HTTP {response.status_code}: {e}")
+    print(f"Body: {response.text}")
+except Exception as e:
+    print(f"ERROR inesperado {type(e).__name__}: {e}")
+    """
 
 if __name__ == "__main__":
     print("\n" + "="*50)

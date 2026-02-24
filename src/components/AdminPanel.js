@@ -14,7 +14,7 @@ const gitLogo = "https://cdn.worldvectorlogo.com/logos/git-icon.svg";
 function Card({ title, description, logoUrl, redirectUrl, docUrl }) {
   return (
     <div className="service-card">
-      <button 
+      <button
         className="card-docs-btn"
         onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
         title="Ver documentación"
@@ -24,7 +24,7 @@ function Card({ title, description, logoUrl, redirectUrl, docUrl }) {
       <img src={logoUrl} alt={title} className="card-logo" />
       <h3 className="card-title">{title}</h3>
       <p className="card-description">{description}</p>
-      <button 
+      <button
         className="card-access-btn"
         onClick={() => window.open(redirectUrl, '_blank', 'noopener,noreferrer')}
       >
@@ -37,12 +37,22 @@ function Card({ title, description, logoUrl, redirectUrl, docUrl }) {
 function AdminPanel() {
   const [env, setEnv] = useState('dev');
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState([{
+    type: 'bot',
+    text: '¡Hola! Soy tu asistente Aries DevOps. ¿En qué puedo ayudarte hoy?',
+    options: [
+      { label: '📊 Ver Inventario', action: 'link', value: '/api/inventario' },
+      { label: '🚀 Acceso Jenkins', action: 'text', value: 'jenkins' },
+      { label: '🛡️ Estado de Servicios', action: 'text', value: 'status' },
+      { label: '📞 Soporte Crítico', action: 'link', value: 'https://altoariari.com/contacto' }
+    ]
+  }]);
   const [inputMessage, setInputMessage] = useState('');
   const [healthcheckTools, setHealthcheckTools] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    fetch('/api/healthcheck')
+    fetch('/healthcheck')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -51,7 +61,7 @@ function AdminPanel() {
       })
       .catch(err => console.error("Error fetching healthchecks:", err));
   }, []);
-  
+
   const message = window._env_?.REACT_APP_MESSAGE || '';
   const documentationUrl = "https://altoariari.com";
 
@@ -104,7 +114,7 @@ function AdminPanel() {
 
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'ok': return '#4caf50';
       case 'warning': return '#ff9800';
       case 'error': return '#f44336';
@@ -112,17 +122,70 @@ function AdminPanel() {
     }
   };
 
+  const addBotResponse = (text, options = []) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, { type: 'bot', text, options }]);
+      setIsTyping(false);
+    }, 800);
+  };
+
+  const handleOptionClick = (option) => {
+    setChatMessages(prev => [...prev, { type: 'user', text: option.label }]);
+
+    if (option.action === 'link') {
+      window.open(option.value, '_blank');
+      addBotResponse(`He abierto el enlace: ${option.label}. ¿Necesitas algo más?`, [
+        { label: 'Volver al Inicio', action: 'text', value: 'home' }
+      ]);
+    } else {
+      processCommand(option.value);
+    }
+  };
+
+  const processCommand = (cmd) => {
+    switch (cmd) {
+      case 'jenkins':
+        addBotResponse('Aquí tienes los accesos directos a Jenkins según el ambiente:', [
+          { label: 'Jenkins DEV', action: 'link', value: envUrls.dev },
+          { label: 'Jenkins PRD', action: 'link', value: envUrls.prd },
+          { label: 'Volver', action: 'text', value: 'home' }
+        ]);
+        break;
+      case 'status':
+        const upCount = healthcheckTools.filter(t => t.status === 'ok').length;
+        addBotResponse(`Actualmente hay ${upCount} servicios operativos de los ${healthcheckTools.length} monitoreados.`, [
+          { label: 'Ver detalles monitoreo', action: 'link', value: 'http://localhost:3001' },
+          { label: 'Volver', action: 'text', value: 'home' }
+        ]);
+        break;
+      case 'home':
+        addBotResponse('¿En qué más puedo ayudarte?', [
+          { label: '📊 Ver Inventario', action: 'link', value: '/api/inventario' },
+          { label: '🚀 Acceso Jenkins', action: 'text', value: 'jenkins' },
+          { label: '🛡️ Estado de Servicios', action: 'text', value: 'status' }
+        ]);
+        break;
+      default:
+        addBotResponse('No estoy seguro de cómo procesar esa opción, pero puedo intentarlo de nuevo.');
+    }
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
+      const msg = inputMessage.toLowerCase();
       setChatMessages([...chatMessages, { type: 'user', text: inputMessage }]);
       setInputMessage('');
-      
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, { 
-          type: 'bot', 
-          text: 'Hola, soy el asistente de DevOps. ¿En qué puedo ayudarte con las herramientas?' 
-        }]);
-      }, 500);
+
+      if (msg.includes('jenkins')) processCommand('jenkins');
+      else if (msg.includes('inventario')) processCommand('home');
+      else if (msg.includes('status') || msg.includes('estado')) processCommand('status');
+      else {
+        addBotResponse('Interesante. No tengo una respuesta automática para eso todavía, pero si seleccionas una de estas opciones puedo guiarte:', [
+          { label: '🚀 Panel Jenkins', action: 'text', value: 'jenkins' },
+          { label: '📊 Inventario', action: 'link', value: '/api/inventario' }
+        ]);
+      }
     }
   };
 
@@ -424,7 +487,7 @@ function AdminPanel() {
         }
 
         .chat-header {
-          background: #d22f19ff;
+          background: #d32f2f;
           color: white;
           padding: 15px;
           font-weight: bold;
@@ -457,22 +520,27 @@ function AdminPanel() {
         }
 
         .chat-message {
-          padding: 10px 15px;
-          border-radius: 8px;
-          max-width: 80%;
+          padding: 12px 16px;
+          border-radius: 18px;
+          max-width: 85%;
           word-wrap: break-word;
+          font-size: 14px;
+          line-height: 1.4;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .chat-message.user {
-          background: #d22f19ff;
+          background: #d32f2f;
           color: white;
           align-self: flex-end;
+          border-bottom-right-radius: 4px;
         }
 
         .chat-message.bot {
-          background: #f0f0f0;
-          color: #333;
+          background: #f1f3f4;
+          color: #202124;
           align-self: flex-start;
+          border-bottom-left-radius: 4px;
         }
 
         .chat-input-container {
@@ -509,6 +577,46 @@ function AdminPanel() {
           background: #1565c0;
         }
 
+        .chat-options {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .chat-option-btn {
+          background: white;
+          border: 1px solid #d32f2f;
+          color: #d32f2f;
+          padding: 6px 12px;
+          border-radius: 15px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .chat-option-btn:hover {
+          background: #d32f2f;
+          color: white;
+        }
+
+        .typing-indicator {
+          font-size: 12px;
+          color: #999;
+          font-style: italic;
+          margin-left: 15px;
+          margin-bottom: 10px;
+        }
+
+        .chat-message {
+          animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
           .healthcheck-container {
             position: static;
@@ -536,16 +644,16 @@ function AdminPanel() {
 
       <div className="top-bar">
         <div className="logo-aries">
-          <img 
+          <img
             src={ariesLogo}
-            alt="Logo ARIES" 
+            alt="Logo ARIES"
             className="logo-aries-img"
           />
         </div>
-        
+
         <div className="healthcheck-container">
           {healthcheckTools.map(tool => (
-            <a 
+            <a
               key={tool.name}
               href={tool.url}
               target="_blank"
@@ -554,7 +662,7 @@ function AdminPanel() {
             >
               <div className="healthcheck-logo">
                 <Activity size={20} />
-                <div 
+                <div
                   className="status-indicator"
                   style={{ background: getStatusColor(tool.status) }}
                 ></div>
@@ -564,7 +672,7 @@ function AdminPanel() {
           ))}
         </div>
 
-        <button 
+        <button
           className="docs-icon-button"
           onClick={() => window.open(documentationUrl, '_blank', 'noopener,noreferrer')}
           title="Documentación"
@@ -582,9 +690,9 @@ function AdminPanel() {
 
         <div className="env-selector">
           <label htmlFor="environment">Selecciona el ambiente:</label>
-          <select 
-            id="environment" 
-            value={env} 
+          <select
+            id="environment"
+            value={env}
             onChange={(e) => setEnv(e.target.value)}
           >
             <option value="dev">Desarrollo</option>
@@ -595,7 +703,7 @@ function AdminPanel() {
 
         <div className="cards-container">
           {services.map((service) => (
-            <Card 
+            <Card
               key={service.id}
               title={service.title}
               description={service.description}
@@ -607,7 +715,7 @@ function AdminPanel() {
         </div>
       </div>
 
-      <button 
+      <button
         className="chat-button"
         onClick={() => setChatOpen(!chatOpen)}
         title="Abrir chat de soporte"
@@ -622,20 +730,29 @@ function AdminPanel() {
             <button className="chat-close" onClick={() => setChatOpen(false)}>×</button>
           </div>
           <div className="chat-messages">
-            {chatMessages.length === 0 && (
-              <div className="chat-message bot">
-                ¡Hola! Soy tu asistente Aries DevOps. ¿En qué puedo ayudarte hoy?
-              </div>
-            )}
             {chatMessages.map((msg, idx) => (
               <div key={idx} className={`chat-message ${msg.type}`}>
-                {msg.text}
+                <div className="message-text">{msg.text}</div>
+                {msg.type === 'bot' && msg.options && (
+                  <div className="chat-options">
+                    {msg.options.map((opt, i) => (
+                      <button
+                        key={i}
+                        className="chat-option-btn"
+                        onClick={() => handleOptionClick(opt)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
+            {isTyping && <div className="typing-indicator">Aries está escribiendo...</div>}
           </div>
           <div className="chat-input-container">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="chat-input"
               placeholder="Escribe tu mensaje..."
               value={inputMessage}
